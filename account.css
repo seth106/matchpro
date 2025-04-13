@@ -1,0 +1,179 @@
+/* Default (Light Mode) */
+:root {
+    --bg-color: #f8f9fa;
+    --text-color: #333;
+    --card-bg: #fff;
+    --border-color: #ddd;
+    --button-bg: #007bff;
+    --button-text: #fff;
+    --top-up-bg: #28a745;
+    --withdraw-bg: #dc3545;
+}
+
+/* Dark Mode */
+.dark-mode {
+    --bg-color: #121212;
+    --text-color: #eee;
+    --card-bg: #1e1e1e;
+    --border-color: #444;
+    --button-bg: #0d6efd;
+    --button-text: #fff;
+    --top-up-bg: #198754;
+    --withdraw-bg: #bb2d3b;
+}
+
+/* Apply Theme Variables */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Profile & Wallet Containers */
+.profile-container, .wallet-container {
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: background 0.3s ease, border 0.3s ease;
+}
+
+/* Profile Picture */
+.profile-img {
+    width: 140px; /* Slightly larger for better appearance */
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    border: 4px solid var(--button-bg);
+    transition: transform 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect */
+.profile-img:hover {
+    transform: scale(1.07); /* Slight zoom-in effect */
+    border-color: var(--top-up-bg); /* Changes border color on hover */
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Subtle glow effect */
+}
+
+
+/* Bio Section */
+.bio-container {
+    text-align: left;
+    margin-top: 10px;
+}
+
+.bio-content {
+    display: none;
+}
+
+.bio-content textarea {
+    width: 100%;
+    height: 80px;
+    resize: none;
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+/* Wallet Section */
+.wallet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Amount Input */
+.amount-input {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    margin-top: 10px;
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+/* Wallet Buttons */
+.wallet-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.wallet-buttons button {
+    width: 45%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    color: var(--button-text);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#top-up {
+    background: var(--top-up-bg);
+}
+
+#withdraw {
+    background: var(--withdraw-bg);
+}
+
+/* Transaction History */
+.history-container {
+    margin-top: 20px;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 5px;
+    background: var(--card-bg);
+    transition: background 0.3s ease;
+}
+
+.history-container ul {
+    padding: 0;
+    list-style-type: none;
+}
+
+.history-container li {
+    padding: 5px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Logout Button */
+#logout {
+    display: block;
+    margin: auto;
+    margin-top: 20px;
+    padding: 10px;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .wallet-buttons {
+        flex-direction: column;
+    }
+
+    .wallet-buttons button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}

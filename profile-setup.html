@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Setup</title>
+    <link rel="stylesheet" href="profile-setup.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Complete Your Profile</h2>
+        <form id="profile-setup-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
+
+            <label for="phone">Phone Number:</label>
+            <input type="text" id="phone" required>
+
+            <label for="profile-pic">Profile Picture:</label>
+            <input type="file" id="profile-pic" accept="image/*">
+
+            <button type="submit">Save Profile</button>
+        </form>
+        <p id="error-message" class="error"></p>
+    </div>
+
+    <script src="profile-setup.js"></script>
+</body>
+</html>

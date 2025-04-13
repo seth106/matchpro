@@ -1,0 +1,1231 @@
+/* =======================
+   GLOBAL STYLES
+======================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.3s, color 0.3s, border 0.3s;
+}
+
+/* Default Dark Theme */
+body {
+    background: #121212;
+    color: white;
+}
+
+/* Light Mode */
+body[data-theme="light"] {
+    background: #f5f5f5;
+    color: black;
+}
+
+/* =======================
+   HEADER & NAVIGATION
+======================= */
+.header {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: rgba(20, 25, 45, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Light Mode Header */
+body[data-theme="light"] .header {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation Links */
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+.nav-links a {
+    font-size: 18px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+body[data-theme="light"] .nav-links a {
+    color: black;
+}
+/* Hamburger Menu */
+.menu-toggle {
+    display: none;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    z-index: 1100;
+}
+/* Hamburger Bars */
+.menu-toggle .bar {
+    display: block;
+    width: 30px;
+    height: 4px;
+    margin: 6px auto;
+    background: white;
+    transition: 0.3s;
+}
+
+body[data-theme="light"] .menu-toggle .bar {
+    background: black;
+}
+#profile-container {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  
+  #profile-pic {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  
+  #profile-pic:hover {
+    transform: scale(1.1);
+  }
+  
+
+/* Transform Menu when Active */
+.menu-toggle.active .bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.menu-toggle.active .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.active .bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Light Mode Menu Toggle */
+body[data-theme="light"] .menu-toggle {
+    color: black;
+}
+
+    /* --- THEME TOGGLE BUTTON --- */
+.theme-toggle {
+    font-size: 24px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Light Theme Mobile Menu */
+body[data-theme="light"] .nav-links {
+    background: rgba(225, 225, 255, 0.95);
+}
+
+/* Wallet Icon */
+.wallet-icon {
+    font-size: 22px;
+    cursor: pointer;
+    color: white;
+    margin-left: 15px;
+}
+
+body[data-theme="light"] .wallet-icon {
+    color: black;
+}
+
+/* Wallet Page */
+.wallet-section {
+    margin: 120px auto;
+    padding: 20px;
+    max-width: 500px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+body[data-theme="light"] .wallet-section {
+    background: white;
+    border: 1px solid #ddd;
+}
+
+.wallet-balance {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: #00ff00;
+}
+
+
+/* =======================
+   MAIN SECTION 
+======================= */
+.main-section {
+    position: fixed; /* Keeps it fixed at the top */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 300px; /* Adjust height based on content */
+    background: var(--bg-color);
+    color: var(--text-color);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: 0 4px 6px var(--shadow-color);
+    z-index: 600;
+    padding: 10px;
+    transition: background 0.3s, color 0.3s;
+}
+.stats {
+    display: flex;
+    justify-content: center; /* Center items horizontally */
+    align-items: center;
+    width: auto; /* Adjust width dynamically */
+    min-width: 200px; /* Prevent it from being too small */
+    height: 30px; /* Make it compact */
+    background-color: rgba(255, 0, 0, 0.0); /* Dark background for contrast */
+    color: black; /* Text color */
+    padding: 5px 10px;
+    border-radius: 6px;
+    position: fixed;
+    top: 110px; /* Stick it at the top */
+    right: 50%; /* Center horizontally */
+    transform: translateX(50%); /* Adjust centering */
+    text-align: center;
+    box-shadow: 0px 4px 8px rgba(255, 0, 0, 0.0);
+    gap: 10px; /* Space between items */
+    z-index: 1200;
+}
+
+.stats p {
+    margin: 0;
+    font-size: 2px; /* Reduce font size */
+    font-weight: 400; /* Slightly bold for readability */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+
+/* === Light & Dark Mode Support === */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333;
+    --border-color: #ccc;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+.main-section h1 {
+    font-size: 50px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    background: linear-gradient(to right, #00eaff, #ff00ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+}
+
+.main-section p {
+    font-size: 20px;
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+/* =======================
+   MATCHING APPLICATION 
+======================= */
+/* === Base Styling === */
+:root {
+    /* Light mode colors*/
+    --bg-color: #ffffff;
+    --text-color: #333;
+    --input-bg: #f9f9f9;
+    --input-border: #ccc;
+    --button-bg: #007bff;
+    --button-hover: #0056b3;
+    --personality-bg: #f4f4f4;
+    --personality-hover: #007bff;
+    --selected-bg: #28a745;
+}
+
+/* Dark mode variables 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1e1e1e;
+        --text-color: #f0f0f0;
+        --input-bg: #2c2c2c;
+        --input-border: #555;
+        --button-bg: #0096ff;
+        --button-hover: #0070cc;
+        --personality-bg: #333;
+        --personality-hover: #0096ff;
+        --selected-bg: #34c759;
+        */
+    
+
+/* === Section Styling === */
+.matching-section {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background: var(--bg-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-family: "Arial", sans-serif;
+    color: var(--text-color);
+    transition: background 0.3s, color 0.3s;
+}
+/* Container */
+/* 🌗 Define Theme Variables */
+:root {
+    --background: #f8f8f8;
+    --text-color: #333;
+    --card-bg: white;
+    --card-hover-bg: #e0e0e0;
+    --table-header-bg: #333;
+    --table-header-text: white;
+    --selected-bg: #4CAF50;
+    --selected-text: white;
+    --button-bg: #66BB6A;
+    --button-hover-bg: #b71c1c;
+    --box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --bg-color: #545252;
+    --background: #ebedec;
+    --text-color: #333;
+    --card-bg: #cfcccc;
+    --card-hover-bg: #fff;
+    --table-header-bg: #444;
+    --table-header-text: #fff;
+    --selected-bg: #66BB6A;
+    --selected-text: white;
+    --button-bg: #80a68b;
+    --button-hover-bg: #8c1a1a;
+    --box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+}
+
+/* 🌗 General Styles */
+body {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* 🌗 Container */
+.container {
+    max-width: 90%;
+    margin: 40px auto;
+    padding: 20px;
+    background: var(--bg-color);
+    border-radius: 8px;
+    box-shadow: var(--box-shadow);
+    text-align: center;
+}
+
+/* 🌗 Titles */
+h2 {
+    color: var(--text-color);
+    font-size: 1.5rem;
+}
+
+/* 🌗 Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 15px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+    text-align: center;
+    font-size: 1rem;
+}
+
+th {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* 🌗 Selectable Cells */
+td.selectable {
+    background-color: var(--card-bg);
+}
+
+td.selectable:hover {
+    background-color: var(--card-hover-bg);
+    transform: scale(1.05);
+}
+
+/* 🌗 Selected State */
+td.selectable.selected {
+    background-color: var(--selected-bg) !important;
+    color: var(--selected-text) !important;
+    font-weight: bold;
+    box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* 🌗 Selected Personalities */
+.selected-personality-1 { background-color: #3498db !important; }
+.selected-personality-2 { background-color: #e67e22 !important; }
+.selected-personality-3 { background-color: #9b59b6 !important; }
+
+/* 🌗 Selected Code */
+.selected-code {
+    background-color: #ff9800 !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+/* 🌗 Hidden Elements */
+.hidden {
+    display: none;
+}
+
+/* 🌗 Details & Matched Results */
+.details-container, .matched-container {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: var(--box-shadow);
+    text-align: center;
+}
+
+/* 🌗 Matched Cards Layout */
+.matched-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    justify-content: center;
+    padding: 10px;
+}
+.matched-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    justify-content: center;
+    max-width: 100%;
+    padding: 10px;
+}
+
+/* 🌗 Individual Matched Cards */
+.matched-card {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: var(--box-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 🌗 Hover Effect for Cards */
+.matched-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 4px 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 🌗 Restart Button */
+#restartButton {
+    margin-top: 20px;
+    padding: 12px 24px;
+    background-color: var(--button-bg);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease-in-out;
+}
+
+#restartButton:hover {
+    background-color: var(--button-hover-bg);
+}
+
+/* 🌗 Ensure the table fits within the container */
+#personalityTable {
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+/* 🌗 Table Rows & Cells */
+#personalityTable tr {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#personalityTable td {
+    flex: 1 1 25%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* 🌗 Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        max-width: 95%;
+    }
+    table {
+        font-size: 0.9rem;
+    }
+    .matched-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .matched-container {
+        grid-template-columns: 1fr;
+    }
+    td {
+        padding: 12px;
+    }
+}
+
+/* 🌗 Loading Spinner */
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #ccc;
+    border-top: 3px solid #000;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Scroll feature for small screens */
+@media (max-width: 768px) {
+    #personalityTable td {
+        flex: 1 1 25%; /* 2 columns per row for tablets */
+    }
+   
+    
+}
+
+@media (max-width: 600px) {
+    #personalityTable {
+        display: hidden;
+        overflow-x: auto; /* Horizontal scroll */
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+    #personalityTable tbody {
+        display: flex;
+        flex-wrap: nowrap; /* Prevents wrapping, allows horizontal scrolling */
+    }
+
+    #personalityTable tr {
+        flex-direction: row;
+        display: inline-flex;
+    }
+
+    #personalityTable td {
+        flex: 1 1 auto;
+        min-width: 25%; /* Ensures 4 columns per row in scroll mode */
+        padding: 14px;
+    }
+}
+/* General Styling for Titles */
+h2 {
+    font-size: 24px; /* Default size for desktops */
+    color: #333; /* Dark gray for readability */
+    text-align: center;
+    font-weight: bold;
+    margin: 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(to right, #4CAF50, #2196F3); /* Green to Blue gradient */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Titles for steps (Step 1, Step 2, etc.) */
+#tableTitle,
+#categoryTitle,
+#personalityTitle,
+#codeTitle {
+    font-size: 22px;
+    text-align: center;
+    padding: 10px 0;
+    border-bottom: 2px solid #4CAF50;
+}
+
+/* Smaller screens - Adjust title size */
+@media (max-width: 768px) {
+    h2 {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    h2 {
+        font-size: 18px;
+    }
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .container {
+        max-width: 95%;
+    }
+    table {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    table {
+        font-size: 0.85rem;
+    }
+    .matched-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .matched-container {
+        grid-template-columns: 1fr;
+    }
+    td {
+        padding: 12px;
+    }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #ccc;
+    border-top: 3px solid #000;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* === Form Elements === */
+.matching-section h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.matching-section form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.matching-section label {
+    font-weight: bold;
+    font-size: 14px;
+    display: block;
+    text-align: left;
+    width: 100%;
+    color: #2196F3;
+}
+
+/* Inputs & Select */
+.matching-section input,
+.matching-section select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    transition: 0.3s;
+    outline: none;
+    color: var(--text-color);
+}
+
+.matching-section input:focus,
+.matching-section select:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* === Button Styling === */
+.matching-section button {
+    background-color: var(--button-bg);
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    width: 100%;
+}
+
+.matching-section button:hover {
+    background-color: var(--button-hover);
+}
+
+/* === Personalities List === */
+#personalityList {
+    list-style: none;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    max-height: 100px; /* Adjust height as needed */
+    overflow-y: auto;  /* Enables vertical scrolling */
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    
+}
+
+#personalityList li {
+    background: var(--personality-bg);
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 14px;
+    text-align: center;
+    color: var(--text-color);
+}
+
+#personalityList li:hover {
+    background: var(--personality-hover);
+    color: white;
+}
+
+/* Selected Personalities */
+#personalityList li.selected {
+    background: var(--selected-bg);
+    color: white;
+    font-weight: bold;
+}
+
+/* Warning Message */
+#personalityWarning {
+    font-size: 14px;
+    color: red;
+    display: none;
+    text-align: center;
+}
+
+/* Matched Results */
+#matchedResultss {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--button-bg);
+}
+
+/* Matched Cards Container */
+#matchedCardsContainer {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* === Smooth Transitions for Theme Changes === */
+body {
+    transition: background 0.3s, color 0.3s;
+}
+
+ button[type="submit"] {
+    display: block; /* Makes it a block element */
+    margin: 20px auto; /* Centers the button horizontally */
+    padding: 8px 16px; /* Reduces padding */
+    font-size: 14px; /* Decreases font size */
+    background-color:linear-gradient(to right, #4CAF50, #2196F3); /* Button color */
+    color: white; /* Text color */
+    border: none; /* Removes border */
+    border-radius: 5px; /* Rounds corners */
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3; /* Darker color on hover */
+}
+
+    
+
+
+button[type="submit"]:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: scale(1.05); /* Slightly enlarge the button */
+}
+
+button[type="submit"]:active {
+    background-color: #004080; /* Even darker blue when clicked */
+    transform: scale(0.98); /* Slight shrink effect */
+}
+
+/* Disabled State */
+button[type="submit"]:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+[data-theme="dark"] button[type="submit"] {
+    background-color: #444;
+    color: #fff;
+}
+
+[data-theme="dark"] button[type="submit"]:hover {
+    background-color: #222;
+}
+#matchedResults {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+#matchedResults h3 {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+/* Light Theme Inputs */
+body[data-theme="light"] .matching-section {
+    background: rgba(240, 240, 240, 0.9);
+}
+
+body[data-theme="light"] .matching-section input, 
+body[data-theme="light"] .matching-section select {
+    background: white;
+    color: black;
+    border: 1px solid #ccc;
+}
+body[data-theme="Dark"] .matching-section input, 
+body[data-theme="Dark"] .matching-section select {
+    background: white;
+    color: black;
+    border: 1px solid #ccc;
+}
+
+
+
+/* =======================
+   GRAPH & CALCULATION BAR
+======================= */
+/* === Base Styling === */
+:root {
+    /* Light Mode Colors */
+    --bg-color: #ffffff;
+    --text-color: #333;
+    --graph-bg: #f9f9f9;
+    --border-color: #ccc;
+}
+
+/* Dark Mode Variables */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1e1e1e;
+        --text-color: #f0f0f0;
+        --graph-bg: #222;
+        --border-color: #444;
+    }
+}
+
+/* === Graph Container Styling */
+#graphContainer {
+    width: 100%;
+    height: 320px;     
+    max-width: 500px;
+    margin: 15px auto;
+    padding: 15px;
+    background: var(--background);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s, color 0.3s;
+    position: relative;
+    border: 1px solid var(--border-color);
+    z-index: 1000; 
+    border-bottom: 2px solid var(--border-color);
+    margin-top: 40px;
+    
+    
+    }
+  
+
+/* === Plotly Graph Styling === */
+#cardGraph {
+    width: 100%;
+    height: 100%;   
+    background:  #ffffff;
+    border-radius: 10px;
+    object-fit: contain;
+    transition: background 0.3s;
+    
+    
+/* === Root Theme Variables for Light & Dark Mode === */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333;
+    --graph-bg: #f9f9f9;
+    --border-color: #ccc;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1e1e1e;
+        --text-color: #f0f0f0;
+        --graph-bg: #222;
+        --border-color: #444;
+    }
+}
+
+/* === Graph Container Fixed at the Top === */
+
+}
+
+/* Ensures the first section starts after the fixed graph */
+.main-content {
+    margin-top: 420px; /* Should be slightly more than graph height */
+}
+
+/* === Other Sections Scroll Normally === */
+section {
+    padding: 20px;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* === Mobile & Tablet Styles (≤768px) === */
+@media (max-width: 768px) {
+    #graphContainer {
+        height: 100%;
+        padding: 2px;
+    }   
+
+    #cardGraph {
+        height: 250px;
+        max-height: 250px;
+    }
+
+    .main-content {
+        margin-top: 320px; /* Make sure content is not overlapped by graph */
+    }
+}
+
+/* === Smooth Transitions for Theme Changes === */
+body {
+    transition: background 0.3s, color 0.3s;
+
+}
+/* Pop-up notification styling */
+.fluctuation-popup {
+    position: absolute;
+    top: 100px; /* Starts slightly above */
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    opacity: 0;
+    animation: popupAnimation 2.5s ease-in-out;
+    z-index: 1000;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Bronze Styling */
+.bronze-popup {
+    background: linear-gradient(135deg, #cd7f32, #b87333);
+    box-shadow: 0px 4px 20px rgba(205, 127, 50, 0.6);
+}
+
+/* Silver Styling */
+.silver-popup {
+    background: linear-gradient(135deg, #c0c0c0, #b0b0b0);
+    box-shadow: 0px 4px 20px rgba(192, 192, 192, 0.6);
+}
+
+/* Gold Styling */
+.gold-popup {
+    background: linear-gradient(135deg, #ffd700, #ffcc00);
+    box-shadow: 0px 4px 20px rgba(255, 215, 0, 0.6);
+}
+
+/* Keyframe animation for pop-up */
+@keyframes popupAnimation {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px) scale(0.9);
+    }
+    20% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0px) scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px) scale(0.9);
+    }
+}
+.fall-popup {
+    background-color: rgba(255, 0, 0, 0.8); /* Red background for fall */
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    position: absolute;
+    top: 100px;
+    right: 10px;
+    z-index: 1000;
+    animation: fadeInOut 2.5s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: scale(0.9); }
+    10% { opacity: 1; transform: scale(1); }
+    90% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.9); }
+}
+
+
+/* Calculation Bar */
+.calculation-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+    font-size: 18px;
+    text-align: center;
+}
+/* Styling the container */
+.set-value-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 330px;
+    margin: auto;
+    text-align: center;
+    margin-top: 350px;
+    z-index: 2000;
+}
+
+/* Label Styling */
+.set-value-container label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+/* Input Styling */
+#setInitialValue, #initialValue {
+    width: 80%;
+    padding: 10px;
+    border: 2px solid #28a745;
+    border-radius: 5px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#initialValue:focus {
+    border-color: #218838;
+    box-shadow: 0px 0px 8px rgba(40, 167, 69, 0.5);
+}
+
+/* Button Styling */
+#setInitialValue {
+    background: #28a745;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+#setInitialValue:hover {
+    background: #218838;
+    transform: scale(1.05);
+}
+
+/* Wallet Section */
+.wallet-container {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    padding: 10px;
+    border-radius: 5px;
+    background: white;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+/* Wallet Balance Animation */
+.wallet-container span {
+    color: #28a745;
+    font-size: 20px;
+    transition: color 0.3s ease-in-out, transform 0.2s;
+}
+
+/* Wallet balance flash effect when updated */
+@keyframes walletUpdate {
+    0% { transform: scale(1); color: #28a745; }
+    50% { transform: scale(1.2); color: #155724; }
+    100% { transform: scale(1); color: #28a745; }
+}
+
+/* Add this class dynamically when the wallet balance updates */
+.wallet-update {
+    animation: walletUpdate 0.5s ease-in-out;
+}
+
+
+
+/* Light Theme Adjustments */
+body[data-theme="light"] .graph-section {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+body[data-theme="light"] .calculation-bar {
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+}
+
+/* =======================
+   MATCHED CARDS DISPLAY
+======================= */
+.matched-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.card {
+    background: rgba(15, 20, 40, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Light Theme Cards */
+body[data-theme="light"] .card {
+    background: white;
+    color: black;
+    border: 1px solid #ddd;
+}
+
+/* =======================
+   RESPONSIVE DESIGN
+======================= */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        right: 0;
+        background: rgba(15, 20, 40, 0.95);
+        width: 100%;
+        text-align: center;
+        padding: 20px 0;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+}
+
+/* =======================
+   FOOTER
+======================= */
+.footer {
+    text-align: center;
+    padding: 20px;
+    background: black;
+    font-size: 14px;
+    opacity: 0.8;
+    margin-top: 40px;
+}
+
+/* Light Theme Footer */
+body[data-theme="light"] .footer {
+    background: white;
+    color: black;
+    border-top: 1px solid #ccc;
+}
