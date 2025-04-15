@@ -1,55 +1,58 @@
 /* Default (Light Mode) */
 :root {
     --bg-color: #f8f9fa;
-    --text-color: #333;
-    --card-bg: #fff;
-    --border-color: #ddd;
-    --button-bg: #007bff;
-    --button-text: #fff;
-    --top-up-bg: #28a745;
+    --text-color: #212529;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+    --button-bg: #0d6efd;
+    --button-text: #ffffff;
+    --top-up-bg: #198754;
     --withdraw-bg: #dc3545;
+    --shadow-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Dark Mode */
 .dark-mode {
     --bg-color: #121212;
-    --text-color: #eee;
+    --text-color: #f1f3f5;
     --card-bg: #1e1e1e;
-    --border-color: #444;
-    --button-bg: #0d6efd;
-    --button-text: #fff;
-    --top-up-bg: #198754;
-    --withdraw-bg: #bb2d3b;
+    --border-color: #343a40;
+    --button-bg: #339af0;
+    --button-text: #ffffff;
+    --top-up-bg: #51cf66;
+    --withdraw-bg: #ff6b6b;
+    --shadow-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Apply Theme Variables */
+/* Base Styling */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background: var(--bg-color);
+    background-color: var(--bg-color);
     color: var(--text-color);
-    transition: background 0.3s ease, color 0.3s ease;
+    transition: background 0.4s ease, color 0.4s ease;
+    line-height: 1.6;
 }
 
-/* Profile & Wallet Containers */
-.profile-container, .wallet-container {
-    width: 100%;
-    max-width: 400px;
-    margin: auto;
-    padding: 20px;
-    background: var(--card-bg);
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
+/* Container Styles */
+.profile-container,
+.wallet-container {
+    max-width: 420px;
+    margin: 30px auto;
+    padding: 25px 20px;
+    background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    transition: background 0.3s ease, border 0.3s ease;
+    border-radius: 16px;
+    box-shadow: 0 6px 16px var(--shadow-color);
+    transition: background 0.3s ease, border-color 0.3s ease;
+    text-align: center;
 }
 
-/* Profile Picture */
+/* Profile Image */
 .profile-img {
-    width: 140px; /* Slightly larger for better appearance */
-    height: 140px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
     object-fit: cover;
     cursor: pointer;
@@ -57,18 +60,16 @@ body {
     transition: transform 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Hover effect */
 .profile-img:hover {
-    transform: scale(1.07); /* Slight zoom-in effect */
-    border-color: var(--top-up-bg); /* Changes border color on hover */
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Subtle glow effect */
+    transform: scale(1.08);
+    border-color: var(--top-up-bg);
+    box-shadow: 0 0 12px rgba(0, 123, 255, 0.4);
 }
-
 
 /* Bio Section */
 .bio-container {
     text-align: left;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 .bio-content {
@@ -77,96 +78,103 @@ body {
 
 .bio-content textarea {
     width: 100%;
-    height: 80px;
-    resize: none;
-    background: var(--card-bg);
-    color: var(--text-color);
+    height: 90px;
+    padding: 10px;
+    border-radius: 6px;
     border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    resize: none;
+    font-size: 14px;
 }
 
-/* Wallet Section */
+/* Wallet Header */
 .wallet-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-weight: 600;
     font-size: 18px;
-    font-weight: bold;
+    margin-bottom: 10px;
 }
 
-/* Amount Input */
+/* Input Field */
 .amount-input {
-    width: 80%;
-    padding: 10px;
+    width: 100%;
+    padding: 12px;
     border: 1px solid var(--border-color);
-    border-radius: 5px;
-    margin-top: 10px;
-    background: var(--card-bg);
+    border-radius: 6px;
+    background-color: var(--card-bg);
     color: var(--text-color);
+    font-size: 16px;
+    margin-top: 10px;
 }
 
-/* Wallet Buttons */
+/* Buttons Row */
 .wallet-buttons {
     display: flex;
     justify-content: space-between;
-    margin-top: 15px;
+    gap: 10px;
+    margin-top: 18px;
 }
 
-.wallet-buttons button {
-    width: 45%;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    color: var(--button-text);
+.wallet-buttons button,
+#logout {
+    flex: 1;
+    padding: 12px 0;
     font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    color: var(--button-text);
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.wallet-buttons button:hover,
+#logout:hover {
+    transform: scale(1.03);
 }
 
 #top-up {
-    background: var(--top-up-bg);
+    background-color: var(--top-up-bg);
 }
 
 #withdraw {
-    background: var(--withdraw-bg);
+    background-color: var(--withdraw-bg);
 }
 
 /* Transaction History */
 .history-container {
     margin-top: 20px;
-    max-height: 150px;
+    max-height: 180px;
     overflow-y: auto;
-    border: 1px solid var(--border-color);
     padding: 10px;
-    border-radius: 5px;
-    background: var(--card-bg);
-    transition: background 0.3s ease;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    transition: background-color 0.3s ease;
 }
 
 .history-container ul {
+    list-style: none;
     padding: 0;
-    list-style-type: none;
+    margin: 0;
 }
 
 .history-container li {
-    padding: 5px;
-    font-size: 14px;
+    font-size: 15px;
+    padding: 8px 0;
     border-bottom: 1px solid var(--border-color);
 }
 
 /* Logout Button */
 #logout {
-    display: block;
-    margin: auto;
-    margin-top: 20px;
-    padding: 10px;
-    background: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    margin-top: 25px;
+    background-color: var(--button-bg);
 }
 
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 600px) {
     .wallet-buttons {
         flex-direction: column;
@@ -174,6 +182,5 @@ body {
 
     .wallet-buttons button {
         width: 100%;
-        margin-bottom: 10px;
     }
 }

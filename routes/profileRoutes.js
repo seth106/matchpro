@@ -10,7 +10,8 @@ const {
   clearTransactionHistory,
   mpesaTopUp,
   mpesaWithdraw,
-  mpesaCallback
+  mpesaCallback,
+  checkMpesaStatus
 } = require("../controllers/profileController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -33,6 +34,9 @@ router.delete("/:userId/history/clear", authMiddleware, clearTransactionHistory)
 router.post("/:userId/mpesa/top-up", authMiddleware, mpesaTopUp);
 router.post("/:userId/mpesa/withdraw", authMiddleware, mpesaWithdraw);
 router.post("/mpesa/callback", mpesaCallback);
+
+// 🔹 M-Pesa Transaction Status Check
+router.get("/mpesa/status/:transactionId", authMiddleware, checkMpesaStatus);
 
 
 router.post("/mpesa/callback", async (req, res) => {

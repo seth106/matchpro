@@ -233,7 +233,7 @@ await fetchProfile();
     // **🔹 Wallet: Top-up & Withdraw**
     async function updateBalance(amount, type) {
         try {
-            const phoneNumber = prompt("Enter your M-Pesa phone number (e.g., +2547XXXXXXXX):");
+            const phoneNumber = prompt("Enter your M-Pesa phone number");
             if (!phoneNumber) return alert("Phone number is required!");
     
             const endpoint = type === "top-up" 

@@ -6,6 +6,7 @@ const axios = require("axios");
 require("dotenv").config();
 const getMpesaToken = require("../utils/mpesaAuth");
 
+
 // Multer Configuration (for handling profile picture uploads)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -336,6 +337,22 @@ exports.mpesaTopUp = async (req, res) => {
             return res.status(400).json({ message: "Invalid phone number or amount" });
         }
 
+        // Normalize phone number: 07XX -> 2547XX
+        const normalizedPhone = phone.startsWith("0")
+            ? phone.replace(/^0/, "254")
+            : phone;
+
+        // Find user
+        const user = await User.findOne({ phone: phone });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        // 🔹 Find associated profile
+       const profile = await Profile.findOne({ user: req.user.id});
+        if (!profile) {
+        return res.status(404).json({ message: "Profile not found for this user" });
+        }
+
         const token = await getMpesaToken();
         const timestamp = new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 14);
         const password = Buffer.from(`${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`).toString("base64");
@@ -346,65 +363,267 @@ exports.mpesaTopUp = async (req, res) => {
             Timestamp: timestamp,
             TransactionType: "CustomerPayBillOnline",
             Amount: amount,
-            PartyA: phone,
+            PartyA: normalizedPhone,
             PartyB: process.env.MPESA_SHORTCODE,
-            PhoneNumber: phone,
+            PhoneNumber: normalizedPhone,
             CallBackURL: process.env.MPESA_CALLBACK_URL,
-            AccountReference: "MatchPro",
+            AccountReference: user.name || "MatchPro",
             TransactionDesc: "Wallet Top-up",
         };
 
-        const response = await axios.post("https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest", requestBody, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
+        const response = await axios.post(
+            "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
+            requestBody,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        // Optionally save transaction request ID for future reference
+        profile.balance += amount;
+        profile.transactionHistory.push({
+            type: "top-up",
+            amount,
+            date: new Date(),
+            requestId: response.data.CheckoutRequestID
         });
 
-        res.json({ message: "STK Push Sent", response: response.data });
+        await profile.save();
+
+        res.json({
+            message: "STK Push Sent. Complete payment on your phone.",
+            transactionId: response.data.CheckoutRequestID,
+        });
     } catch (error) {
-        res.status(500).json({ message: "M-Pesa Error", error: error.response?.data || error.message });
+        console.error("M-Pesa STK Error:", error?.response?.data || error.message);
+        res.status(500).json({
+            message: "M-Pesa Error",
+            error: error.response?.data || error.message,
+        });
     }
 };
 
-// **🔹 M-Pesa B2C Withdrawal**
 exports.mpesaWithdraw = async (req, res) => {
     try {
         const { phone, amount } = req.body;
+
         if (!phone || !amount || amount <= 0) {
             return res.status(400).json({ message: "Invalid phone number or amount" });
+        }
+
+        const normalizedPhone = phone.startsWith("0")
+            ? phone.replace(/^0/, "254")
+            : phone;
+
+        // Find user
+        const user = await User.findOne({ phone });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        // 🔹 Find associated profile
+        const profile = await Profile.findOne({ user: req.user.id});
+        if (!profile) {
+        return res.status(404).json({ message: "Profile not found for this user" });
+        }
+
+        if (profile.balance < amount) {
+            return res.status(400).json({ message: "Insufficient balance" });
         }
 
         const token = await getMpesaToken();
 
         const requestBody = {
-            InitiatorName: "api_initiator",
-            SecurityCredential: "your_encrypted_security_credential",
+            InitiatorName: process.env.MPESA_INITIATOR_NAME,
+            SecurityCredential: process.env.MPESA_SECURITY_CREDENTIAL,
             CommandID: "BusinessPayment",
             Amount: amount,
             PartyA: process.env.MPESA_SHORTCODE,
-            PartyB: phone,
+            PartyB: normalizedPhone,
             Remarks: "Wallet Withdrawal",
             QueueTimeOutURL: process.env.MPESA_CALLBACK_URL,
             ResultURL: process.env.MPESA_CALLBACK_URL,
-            Occasion: "Withdraw",
+            Occasion: "withdraw",
         };
 
-        const response = await axios.post("https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest", requestBody, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
+        const response = await axios.post(
+            "https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest",
+            requestBody,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        // Deduct balance immediately (optionally: wait for success in callback)
+        profile.balance -= amount;
+
+        profile.transactionHistory.push({
+            type: "withdraw",
+            amount,
+            date: new Date(),
+            conversationId: response.data.ConversationID || "Pending",
         });
 
-        res.json({ message: "Withdrawal initiated", response: response.data });
+        await profile.save();
+
+        res.json({
+            message: "Withdrawal initiated. You’ll receive funds shortly.",
+            response: response.data,
+        });
     } catch (error) {
-        res.status(500).json({ message: "M-Pesa Error", error: error.response?.data || error.message });
+        console.error("M-Pesa Withdraw Error:", error?.response?.data || error.message);
+        res.status(500).json({
+            message: "M-Pesa Error",
+            error: error.response?.data || error.message,
+        });
+    }
+};
+// **🔹 M-Pesa Callback Handling**
+exports.mpesaCallback = async (req, res) => {
+    try {
+        const body = req.body.Body;
+
+        // 🟢 STK Push Callback (Top-up)
+        if (body?.stkCallback) {
+            const callback = body.stkCallback;
+            const resultCode = callback.ResultCode;
+            const metadata = callback.CallbackMetadata;
+
+            if (resultCode === 0 && metadata) {
+                const amount = metadata.Item.find(i => i.Name === "Amount")?.Value;
+                const phone = metadata.Item.find(i => i.Name === "PhoneNumber")?.Value;
+                const receipt = metadata.Item.find(i => i.Name === "MpesaReceiptNumber")?.Value;
+
+                console.log("✅ STK Push Success:", { phone, amount, receipt });
+
+                const normalizedPhone = phone.toString().replace(/^0/, "254");
+
+                const profile = await Profile.findOne({ phone: normalizedPhone });
+                if (profile) {
+                    profile.balance += amount;
+
+                    profile.transactionHistory.push({
+                        type: "top-up",
+                        amount,
+                        receipt,
+                        date: new Date(),
+                    });
+
+                    await profile.save();
+                } else {
+                    console.warn("⚠️ User not found for STK callback:", phone);
+                }
+            } else {
+                console.warn("❌ STK Push Failed:", callback.ResultDesc);
+            }
+
+            return res.status(200).json({ message: "STK callback received" });
+        }
+
+        // 🔵 B2C Callback (Withdrawal)
+        if (body?.Result) {
+            const result = body.Result;
+            const resultCode = result.ResultCode;
+            const resultDesc = result.ResultDesc;
+            const conversationId = result.ConversationID;
+
+            const transaction = result?.ResultParameters?.ResultParameter?.reduce((acc, param) => {
+                acc[param.Key] = param.Value;
+                return acc;
+            }, {});
+
+            const phone = transaction?.ReceiverPartyPublicName?.split("-")[0]?.trim();
+            const amount = parseFloat(transaction?.TransactionAmount);
+            const receipt = transaction?.TransactionReceipt;
+
+            if (resultCode === 0 && phone && receipt && amount) {
+                const normalizedPhone = phone.toString().replace(/^0/, "254");
+                const profile = await Profile.findOne({ phone: normalizedPhone });
+
+                if (profile) {
+                    // Update transaction as complete (optional if deducted before)
+                    profile.transactionHistory.push({
+                        type: "withdraw",
+                        amount,
+                        receipt,
+                        date: new Date(),
+                        conversationId,
+                    });
+
+                    await profile.save();
+                    console.log("✅ B2C Withdrawal Confirmed:", { phone, amount, receipt });
+                } else {
+                    console.warn("⚠️ B2C Callback: User not found for phone", phone);
+                }
+            } else {
+                console.warn("❌ B2C Failed or Cancelled:", resultDesc);
+            }
+
+            return res.status(200).json({ message: "B2C callback received" });
+        }
+
+        // ❌ Unknown callback
+        console.warn("⚠️ Unknown callback format received:", JSON.stringify(req.body, null, 2));
+        res.status(400).json({ message: "Invalid callback structure" });
+    } catch (error) {
+        console.error("❌ M-Pesa Callback Error:", error.message);
+        res.status(500).json({ message: "Callback processing error" });
     }
 };
 
-// **🔹 M-Pesa Callback Handling**
-exports.mpesaCallback = async (req, res) => {
-    console.log("M-Pesa Callback Received:", req.body);
-    res.status(200).send("OK");
-};  
+// 🔹 Helper function to get current M-Pesa timestamp
+const getMpesaTimestamp = () => {
+    return new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 14);
+};
+
+// 🔹 M-Pesa STK Push Status Query
+exports.checkMpesaStatus = async (req, res) => {
+    const { transactionId } = req.params;
+
+    try {
+        const token = await getMpesaToken();
+        const timestamp = getMpesaTimestamp();
+
+        const password = Buffer.from(
+            `${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`
+        ).toString("base64");
+
+        const requestBody = {
+            BusinessShortCode: process.env.MPESA_SHORTCODE,
+            Password: password,
+            Timestamp: timestamp,
+            CheckoutRequestID: transactionId,
+        };
+
+        const response = await axios.post(
+            "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+            requestBody,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        const resultCode = response.data?.ResultCode;
+        let status = "PENDING";
+
+        if (resultCode === "0") {
+            status = "CONFIRMED";
+        } else if (resultCode !== undefined) {
+            status = "FAILED";
+        }
+
+        return res.json({ transactionStatus: status });
+    } catch (error) {
+        console.error("🔻 STK Query Error:", error?.response?.data || error.message);
+        return res.status(500).json({ message: "Error checking transaction status" });
+    }
+};
+
