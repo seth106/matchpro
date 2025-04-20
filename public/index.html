@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Card Matching System</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
 </head>
@@ -116,7 +116,23 @@
         <!-- Restart Button -->
         <button id="restartButton" class="hidden">Restart Selection</button>
     </div>
-
+       <!-- === Trend Section === -->
+       <section id="trend-section">
+        <div class="trend-container">
+          <h2>Card Trends (Last 10 Min)</h2>
+          <div class="trend-grid" id="trend-grid">
+            <!-- Cards will be injected here -->
+          </div>
+        </div>
+      </section>
+  <!-- === Modal Popup for History === -->
+  <div id="history-modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="close-modal">&times;</span>
+      <h3>Card Code <span id="modal-card-code"></span> History</h3>
+      <ul id="history-list"></ul>
+    </div>
+  </div>
     <!-- Matching Application Section -->
     <section class="matching-section">
         <h2>Find Your Card Matches</h2>

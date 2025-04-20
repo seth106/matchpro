@@ -34,30 +34,36 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function generateDefaultAvatar(name = "User") {
         const canvas = document.createElement("canvas");
-        canvas.width = 100;
-        canvas.height = 100;
+        const size = 60;
+        canvas.width = size;
+        canvas.height = size;
         const ctx = canvas.getContext("2d");
     
-        // Background color
-        ctx.fillStyle = "#007bff"; // Blue background
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Make the canvas circular with a clip
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
     
-        // Extract initials (first two letters)
+        // Background
+        ctx.fillStyle = "#007bff";
+        ctx.fillRect(0, 0, size, size);
+    
+        // Initials
         const initials = name
             .split(" ")
             .map((n) => n[0].toUpperCase())
             .join("")
             .substring(0, 2);
     
-        // Text styling
         ctx.font = "bold 40px Arial";
-        ctx.fillStyle = "#ffffff"; // White text
+        ctx.fillStyle = "#ffffff";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(initials, canvas.width / 2, canvas.height / 2);
+        ctx.fillText(initials, size / 2, size / 2);
     
-        return canvas.toDataURL(); // Convert canvas to image URL
-    }
+        return canvas.toDataURL();
+    }    
 
     async function fetchProfile() {
         try {

@@ -196,33 +196,61 @@ function showFallPopup(percentFall) {
 
 
  // === PLOTLY GRAPH INITIALIZATION ===
-let timestamps = [];
-let cardValues = [];
-
 const userId = localStorage.getItem("userId"); // Ensure userId is stored on login
+
+let timestamps = [
+    new Date("2025-02-28T12:00:00Z"),
+    new Date("2025-02-28T12:01:00Z"),
+    new Date("2025-02-28T12:02:00Z")
+];
+
+let cardValues = [totalValue, totalValue, totalValue]; // Initial values
+let barColors = ["gray", "gray", "gray"]; // Neutral to start
 
 let layout = {
     title: "Card Value Fluctuation",
     xaxis: {
-        title: "Time",
+        title: "",
         type: "date",
         tickformat: "%H:%M:%S",
-        tickmode: "auto"
+        tickmode: "auto",
+        showgrid: false,
+        color: "#ccc"
     },
-    yaxis: { title: "Card Value" },
+    yaxis: {
+        title: "Card Value",
+        showgrid: false,
+        color: "#ccc"
+    },
     paper_bgcolor: "rgba(0,0,0,0)",
     plot_bgcolor: "rgba(0,0,0,0)",
-    font: { color: "#000000" }
+    font: { color: "#fff" },
+    margin: { t: 50, r: 30, b: 43, l: 60 }
 };
 
-let trace = {
-    x: timestamps,
-    y: cardValues,
-    mode: "lines",
-    line: { color: "lime", width: 2 }
-};
+function drawGraph() {
+    const formattedTimestamps = timestamps.map(t => new Date(t));
 
-Plotly.newPlot("cardGraph", [trace], layout);
+    const barTrace = {
+        x: formattedTimestamps,
+        y: cardValues,
+        type: "bar",
+        marker: { color: barColors },
+        name: ""
+    };
+
+    const lineTrace = {
+        x: formattedTimestamps,
+        y: cardValues,
+        type: "scatter",
+        mode: "lines+markers",
+        line: { color: "lime", width: 3 },
+        marker: { size: 6 },
+        name: ""
+    };
+
+    Plotly.react("cardGraph", [barTrace, lineTrace], layout);
+}
 
 // === BACKEND INTEGRATION ===
 
@@ -252,50 +280,36 @@ async function saveGraphValue(userId, totalValue) {
     }
 }
 
-// === GRAPH UPDATE FUNCTION ===
-async function updateGraph() {
-    // Generate a default fluctuation between -5% and +5%
+function updateGraph() {
     let fluctuation = (Math.random() * 0.1) - 0.05;
-
-    // Calculate new value
     let newValue = totalValue * (1 + fluctuation);
 
-    // Limit within ±10%
     let minLimit = totalValue * 0.90;
     let maxLimit = totalValue * 1.10;
+    newValue = Math.max(Math.min(newValue, maxLimit), minLimit);
 
-    if (newValue < minLimit) newValue = minLimit;
-    if (newValue > maxLimit) newValue = maxLimit;
-
-    // Track gain/loss
     let difference = newValue - totalValue;
+
     if (difference > 0) {
         totalGain += difference;
+        barColors.push("lime");
     } else {
         totalLoss += Math.abs(difference);
+        barColors.push("crimson");
     }
 
     totalValue = newValue;
-    await saveGraphValue(userId, totalValue); // 💾 Save to backend
-
     timestamps.push(new Date());
     cardValues.push(totalValue);
 
-    // Trim to last 20
     if (timestamps.length > 20) {
         timestamps.shift();
         cardValues.shift();
+        barColors.shift();
     }
 
-    // Update graph
-    Plotly.react("cardGraph", [{
-        x: timestamps.map(t => new Date(t)),
-        y: cardValues,
-        mode: "lines",
-        line: { color: "lime", width: 2 }
-    }], layout);
+    drawGraph();
 
-    // Update UI
     let gainElement = document.getElementById("gainValue");
     let lossElement = document.getElementById("lossValue");
     let totalElement = document.getElementById("totalValue");
@@ -307,7 +321,7 @@ async function updateGraph() {
 
 // === START GRAPH AFTER LOADING INITIAL VALUE ===
 loadInitialValue(userId).then(() => {
-    updateGraph(); // Run once after loading
+    drawGraph(); // Run once after loading
     setInterval(updateGraph, 3000); // Then update every 3 seconds
 });
 
@@ -374,69 +388,155 @@ loadInitialValue(userId).then(() => {
     }
 
     // === RUNTIME DATA FOR UPDATING CARDS EVERY MINUTE ===
-    const collections = {};
-    const personalities = ["confident", "charismatic", "rude", "stingy", "honest", "reliable", 
-                          "selfish", "lazy", "affable", "reckless", "jealous", "manipulative"];
-    const types = ["bronze", "silver", "gold"];
+const collections = {};
+const personalities = ["confident", "charismatic", "rude", "stingy", "honest", "reliable", 
+                      "selfish", "lazy", "affable", "reckless", "jealous", "manipulative"];
+const types = ["bronze", "silver", "gold"];
 
-    for (let i = 1; i <= 5; i++) {
-        collections[i] = [];
-        for (let j = 1; j <= 50; j++) {
-            collections[i].push({
-                code: j,
-                personality: getRandom(personalities),
-                type: getRandom(types)
-            });
-        }
+// Initialize collections with cards (codes 1–50 per group)
+for (let i = 1; i <= 5; i++) {
+    collections[i] = [];
+    for (let j = 1; j <= 50; j++) {
+        collections[i].push({
+            code: j,
+            personality: getRandom(personalities),
+            type: getRandom(types),
+            history: [] // ✅ Add history array for each card
+        });
     }
+}
 
-    function updateCards() {
-        for (let i = 1; i <= 5; i++) {
-            let numSimilarPersonalities = getSimilarPersonalityCount();
-            let newPersonality = getRandom(personalities);
-            shuffleArray(collections[i]);
+// Function to update cards every minute
+function updateCards() {
+    for (let i = 1; i <= 5; i++) {
+        let numSimilarPersonalities = getSimilarPersonalityCount();
+        let newPersonality = getRandom(personalities);
 
-            for (let j = 0; j < numSimilarPersonalities; j++) {
-                if (collections[i][j]) {
-                    collections[i][j].personality = newPersonality;
-                }
+        // Shuffle the cards to randomly select which get the same new personality
+        shuffleArray(collections[i]);
+
+        for (let j = 0; j < collections[i].length; j++) {
+            const card = collections[i][j];
+
+            // Only apply new personality to a limited number
+            if (j < numSimilarPersonalities) {
+                card.personality = newPersonality;
             }
 
-            collections[i].forEach(card => {
-                 let rand = Math.random() * 100;
-           if (rand <= 20) {
-          card.type = "gold"; // 20% chance
-           } else if (rand <= 70) {
-          card.type = "silver"; // 50% chance (20-70)
+            // Update type based on probability
+            let rand = Math.random() * 100;
+            if (rand <= 20) {
+                card.type = "gold";
+            } else if (rand <= 70) {
+                card.type = "silver";
             } else {
-          card.type = "bronze"; // 30% chance (70-100)
-             }
-          });
+                card.type = "bronze";
+            }
+
+            // ✅ Record update in history
+            const now = new Date();
+            card.history.push({
+                time: now.toLocaleTimeString(), // You can use now.getTime() instead if you prefer
+                personality: card.personality,
+                type: card.type
+            });
+
+            // ✅ Keep only last 10 updates (10 minutes of history)
+            if (card.history.length > 10) {
+                card.history.shift();
+            }
         }
     }
+}
+const trendGrid = document.getElementById("trend-grid");
+const modal = document.getElementById("history-modal");
+const modalCode = document.getElementById("modal-card-code");
+const historyList = document.getElementById("history-list");
+const closeModal = document.getElementById("close-modal");
 
-    function getSimilarPersonalityCount() {
-        let random = Math.random() * 100;
-        if (random <= 2) return 30;
-        if (random <= 10) return 20;
-        if (random <= 30) return 15;
-        if (random <= 50) return 10;
-        return [2, 4, 8][Math.floor(Math.random() * 3)];
+closeModal.onclick = () => modal.classList.add("hidden");
+window.onclick = (e) => {
+  if (e.target === modal) modal.classList.add("hidden");
+};
+
+// Initialize Trend Cards
+function renderTrendCards() {
+  trendGrid.innerHTML = '';
+  const group = collections[1]; // Pick any collection or loop through all
+
+  group.forEach(card => {
+    const div = document.createElement("div");
+    div.className = "trend-card";
+    div.textContent = card.code;
+
+    // If card was updated recently (within 10 minutes), highlight it
+    const now = new Date();
+    const latest = card.history[card.history.length - 1];
+    if (latest) {
+      const updatedTime = new Date();
+      const [h, m, s] = latest.time.split(':').map(Number);
+      updatedTime.setHours(h, m, s);
+
+      const minutesAgo = (now - updatedTime) / 60000;
+      if (minutesAgo <= 10) {
+        div.classList.add("updated");
+      }
     }
 
-    function getRandom(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
-    }
+    // On click, show history
+    div.onclick = () => showHistory(card);
+    trendGrid.appendChild(div);
+  });
+}
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
+// Show history of selected card
+function showHistory(card) {
+  modal.classList.remove("hidden");
+  modalCode.textContent = card.code;
+  historyList.innerHTML = '';
 
-    setInterval(updateCards, 1000);
-    updateCards();
+  card.history.slice().reverse().forEach(update => {
+    const li = document.createElement("li");
+    li.textContent = `${update.time} — ${update.personality} (${update.type})`;
+    historyList.appendChild(li);
+  });
+}
+
+// Update Trend UI every minute with runtime updates
+setInterval(() => {
+  updateCards();
+  renderTrendCards();
+}, 60 * 1000);
+
+renderTrendCards(); // Initial render
+
+// Random count of cards to apply the same personality to
+function getSimilarPersonalityCount() {
+    let random = Math.random() * 100;
+    if (random <= 2) return 30;
+    if (random <= 10) return 20;
+    if (random <= 30) return 15;
+    if (random <= 50) return 10;
+    return [2, 4, 8][Math.floor(Math.random() * 3)];
+}
+
+// Get a random item from an array
+function getRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Shuffle an array (Fisher-Yates shuffle)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// Run the update every minute
+setInterval(updateCards, 60 * 1000);
+updateCards(); // Initial call
+
 
     // === MATCHING SYSTEM BASED ON R1 & R2 PAIRING ===
     form.addEventListener("submit", function (e) {
