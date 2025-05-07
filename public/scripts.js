@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("matchForm");
     const resultsDiv = document.getElementById("matchedResultss");
-    const themeToggle = document.getElementById("theme-toggle");
     const body = document.body;
     const warning = document.getElementById("personalityWarning");
     const menuToggle = document.getElementById("menu-toggle");
@@ -170,19 +169,25 @@ function showFallPopup(percentFall) {
     // Initialize the display
     totalValueElement.textContent = totalValue.toFixed(2);
 
-    // === THEME TOGGLE FIX ===
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    body.setAttribute("data-theme", savedTheme);
-    themeToggle.innerHTML = savedTheme === "dark" ? "🌙" : "☀️";
+ const themeToggle = document.getElementById("theme-toggle");
+const themeIcon = document.getElementById("theme-icon");
+const savedTheme = localStorage.getItem("theme") || "dark";
+body.setAttribute("data-theme", savedTheme);
 
-    if (themeToggle) {
-    themeToggle.addEventListener("click", function () {
-        let newTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        body.setAttribute("data-theme", newTheme);
-        localStorage.setItem("theme", newTheme);
-        themeToggle.innerHTML = newTheme === "dark" ? "🌙" : "☀️";
-    });
+// Set initial icon
+themeIcon.src = savedTheme === "dark" ? "darkmode.png.png" : "darkmode.png.png";
+
+if (themeToggle) {
+  themeToggle.addEventListener("click", function () {
+    let newTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    body.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+
+    // Change the image source based on the new theme
+    themeIcon.src = newTheme === "dark" ? "darkmode.png.png" : "darkmode.png.png";
+  });
 }
+
     // Hamburger Menu Toggle
     menuToggle.addEventListener("click", function () {
         navLinks.classList.toggle("active");
@@ -193,20 +198,62 @@ function showFallPopup(percentFall) {
             navLinks.classList.remove("active");
         });
     });
+    const userId = localStorage.getItem("userId"); // Ensure userId is stored on login
 
-
+    const liveTotalElement = document.getElementById("live-total-value");
+    
+    async function fetchLiveTotalValue() {
+        try {
+            const res = await fetch(`http://localhost:5000/api/graph-value/${userId}`);
+            const data = await res.json();
+            if (data && data.totalValue !== undefined) {
+                liveTotalElement.textContent = `Total Value: ${data.totalValue.toFixed(2)}`;
+            } else {
+                liveTotalElement.textContent = "Total Value: --";
+            }
+        } catch (error) {
+            console.error("Error fetching live total value:", error);
+            liveTotalElement.textContent = "Error loading value";
+        }
+    }
+    
+    // Call immediately on load
+    fetchLiveTotalValue();
+    
+    // Refresh every 5 seconds
+    setInterval(fetchLiveTotalValue, 60000);
+    
+    
  // === PLOTLY GRAPH INITIALIZATION ===
-const userId = localStorage.getItem("userId"); // Ensure userId is stored on login
+/// --- Retrieve from localStorage or set default ---
+let storedTimestamps = JSON.parse(localStorage.getItem("timestamps"));
+let storedCardValues = JSON.parse(localStorage.getItem("cardValues"));
+let storedBarColors = JSON.parse(localStorage.getItem("barColors"));
+let storedTotalGain = parseFloat(localStorage.getItem("totalGain"));
+let storedTotalLoss = parseFloat(localStorage.getItem("totalLoss"));
 
-let timestamps = [
+ totalValue = 100; // Default fallback
+ totalGain = isNaN(storedTotalGain) ? 0 : storedTotalGain;
+ totalLoss = isNaN(storedTotalLoss) ? 0 : storedTotalLoss;
+
+
+let timestamps = storedTimestamps ? storedTimestamps.map(t => new Date(t)) : [
     new Date("2025-02-28T12:00:00Z"),
     new Date("2025-02-28T12:01:00Z"),
     new Date("2025-02-28T12:02:00Z")
 ];
 
-let cardValues = [totalValue, totalValue, totalValue]; // Initial values
-let barColors = ["gray", "gray", "gray"]; // Neutral to start
+let cardValues = storedCardValues || [totalValue, totalValue, totalValue];
+let barColors = storedBarColors || ["gray", "gray", "gray"];
 
+// Ensure all arrays have equal lengths (truncate to smallest)
+const minLength = Math.min(timestamps.length, cardValues.length, barColors.length);
+timestamps = timestamps.slice(-minLength);
+cardValues = cardValues.slice(-minLength);
+barColors = barColors.slice(-minLength);
+
+
+// Fallback layout for graph
 let layout = {
     title: "Card Value Fluctuation",
     xaxis: {
@@ -227,6 +274,44 @@ let layout = {
     font: { color: "#fff" },
     margin: { t: 50, r: 30, b: 43, l: 60 }
 };
+
+// === BACKEND INTEGRATION ===
+
+// Fetch initial totalValue from backend
+async function loadInitialValue(userId) {
+    try {
+        const res = await fetch(`http://localhost:5000/api/graph-value/${userId}`);
+        const data = await res.json();
+        if (data && data.totalValue) {
+            totalValue = data.totalValue; // Update totalValue from the backend
+        }
+        cardValues.push(totalValue);
+        timestamps.push(new Date());
+        barColors.push("gray"); // Default neutral color for backend-loaded value
+    } catch (err) {
+        console.error("Failed to load initial value:", err);
+        totalValue = 100; // Fallback in case of error
+    }
+}
+
+// Save updated value to backend
+async function saveGraphValue(userId, totalValue) {
+    try {
+        await fetch(`http://localhost:5000/api/graph-value/${userId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ totalValue })
+        });
+    } catch (err) {
+        console.error("Failed to save graph value:", err);
+    }
+}
+
+// === START GRAPH AFTER LOADING INITIAL VALUE ===
+loadInitialValue(userId).then(() => {
+    drawGraph(); // Run once after loading the initial value
+    setInterval(updateGraph, 3000); // Then update every 3 seconds
+});
 
 function drawGraph() {
     const formattedTimestamps = timestamps.map(t => new Date(t));
@@ -252,78 +337,70 @@ function drawGraph() {
     Plotly.react("cardGraph", [barTrace, lineTrace], layout);
 }
 
-// === BACKEND INTEGRATION ===
-
-// Fetch initial totalValue from backend
-async function loadInitialValue(userId) {
-    try {
-        const res = await fetch(`http://localhost:5000/api/graph-value/${userId}`);
-        const data = await res.json();
-        totalValue = data.totalValue || 100;
-        cardValues.push(totalValue);
-        timestamps.push(new Date());
-    } catch (err) {
-        console.error("Failed to load initial value:", err);
-    }
-}
-
-// Save updated value to backend
-async function saveGraphValue(userId, totalValue) {
-    try {
-        await fetch(`http://localhost:5000/api/graph-value/${userId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ totalValue })
-        });
-    } catch (err) {
-        console.error("Failed to save graph value:", err);
-    }
-}
-
+// Graph update logic...
 function updateGraph() {
+    // Generate random fluctuation for value change (between -5% and +5%)
     let fluctuation = (Math.random() * 0.1) - 0.05;
     let newValue = totalValue * (1 + fluctuation);
 
+    // Set the min and max limits for the new value to be within 10% of the current total value
     let minLimit = totalValue * 0.90;
     let maxLimit = totalValue * 1.10;
+
+    // Ensure the new value is within the min-max range
     newValue = Math.max(Math.min(newValue, maxLimit), minLimit);
 
+    // Calculate the difference between the new value and the old value
     let difference = newValue - totalValue;
 
+    // Update the total gain or loss based on the fluctuation
     if (difference > 0) {
-        totalGain += difference;
-        barColors.push("lime");
+        totalGain += difference; // Increase total gain
+        barColors.push("lime"); // Green color for gain
     } else {
-        totalLoss += Math.abs(difference);
-        barColors.push("crimson");
+        totalLoss += Math.abs(difference); // Increase total loss (absolute value)
+        barColors.push("crimson"); // Red color for loss
     }
 
+    // Update the totalValue and add the new value to the cardValues array
     totalValue = newValue;
-    timestamps.push(new Date());
-    cardValues.push(totalValue);
+    timestamps.push(new Date()); // Add the current timestamp to the timestamps array
+    cardValues.push(totalValue); // Push the new value to the cardValues array
 
-    if (timestamps.length > 20) {
-        timestamps.shift();
-        cardValues.shift();
-        barColors.shift();
-    }
+    // Ensure the arrays (timestamps, cardValues, barColors) do not exceed 20 elements
+   // Maintain only last 20 entries
+   if (timestamps.length > 10) timestamps.shift();
+   if (cardValues.length > 10) cardValues.shift();
+   if (barColors.length > 10) barColors.shift();
 
+    // Update localStorage with the new values
+    localStorage.setItem("timestamps", JSON.stringify(timestamps));
+    localStorage.setItem("cardValues", JSON.stringify(cardValues));
+    localStorage.setItem("barColors", JSON.stringify(barColors));
+    localStorage.setItem("totalValue", totalValue.toString());
+    localStorage.setItem("totalGain", totalGain.toString());
+    localStorage.setItem("totalLoss", totalLoss.toString());
+
+    // Redraw the graph with updated data
     drawGraph();
 
+    // Update the displayed total gain, loss, and value
     let gainElement = document.getElementById("gainValue");
     let lossElement = document.getElementById("lossValue");
     let totalElement = document.getElementById("totalValue");
 
+    // Update the text content for the gain, loss, and total value on the UI
     if (gainElement) gainElement.textContent = `+${totalGain.toFixed(2)}`;
     if (lossElement) lossElement.textContent = `-${totalLoss.toFixed(2)}`;
     if (totalElement) totalElement.textContent = totalValue.toFixed(2);
-}
 
-// === START GRAPH AFTER LOADING INITIAL VALUE ===
-loadInitialValue(userId).then(() => {
-    drawGraph(); // Run once after loading
-    setInterval(updateGraph, 3000); // Then update every 3 seconds
-});
+    // Save updated value to backend
+saveGraphValue(userId, totalValue);
+
+}
+console.log("barColors:", barColors);
+console.log("cardValues:", cardValues);
+console.log("Mismatch?", barColors.length !== cardValues.length);
 
 
     const categories = ["C1", "C2", "C3", "C4", "C5"];
@@ -388,128 +465,139 @@ loadInitialValue(userId).then(() => {
     }
 
     // === RUNTIME DATA FOR UPDATING CARDS EVERY MINUTE ===
-const collections = {};
-const personalities = ["confident", "charismatic", "rude", "stingy", "honest", "reliable", 
-                      "selfish", "lazy", "affable", "reckless", "jealous", "manipulative"];
-const types = ["bronze", "silver", "gold"];
-
-// Initialize collections with cards (codes 1–50 per group)
-for (let i = 1; i <= 5; i++) {
-    collections[i] = [];
-    for (let j = 1; j <= 50; j++) {
-        collections[i].push({
-            code: j,
-            personality: getRandom(personalities),
-            type: getRandom(types),
-            history: [] // ✅ Add history array for each card
-        });
-    }
-}
-
-// Function to update cards every minute
-function updateCards() {
-    for (let i = 1; i <= 5; i++) {
-        let numSimilarPersonalities = getSimilarPersonalityCount();
-        let newPersonality = getRandom(personalities);
-
-        // Shuffle the cards to randomly select which get the same new personality
-        shuffleArray(collections[i]);
-
-        for (let j = 0; j < collections[i].length; j++) {
-            const card = collections[i][j];
-
-            // Only apply new personality to a limited number
-            if (j < numSimilarPersonalities) {
-                card.personality = newPersonality;
-            }
-
-            // Update type based on probability
-            let rand = Math.random() * 100;
-            if (rand <= 20) {
-                card.type = "gold";
-            } else if (rand <= 70) {
-                card.type = "silver";
-            } else {
-                card.type = "bronze";
-            }
-
-            // ✅ Record update in history
-            const now = new Date();
-            card.history.push({
-                time: now.toLocaleTimeString(), // You can use now.getTime() instead if you prefer
-                personality: card.personality,
-                type: card.type
-            });
-
-            // ✅ Keep only last 10 updates (10 minutes of history)
-            if (card.history.length > 10) {
-                card.history.shift();
-            }
-        }
-    }
-}
-const trendGrid = document.getElementById("trend-grid");
-const modal = document.getElementById("history-modal");
-const modalCode = document.getElementById("modal-card-code");
-const historyList = document.getElementById("history-list");
-const closeModal = document.getElementById("close-modal");
-
-closeModal.onclick = () => modal.classList.add("hidden");
-window.onclick = (e) => {
-  if (e.target === modal) modal.classList.add("hidden");
-};
-
-// Initialize Trend Cards
-function renderTrendCards() {
-  trendGrid.innerHTML = '';
-  const group = collections[1]; // Pick any collection or loop through all
-
-  group.forEach(card => {
-    const div = document.createElement("div");
-    div.className = "trend-card";
-    div.textContent = card.code;
-
-    // If card was updated recently (within 10 minutes), highlight it
-    const now = new Date();
-    const latest = card.history[card.history.length - 1];
-    if (latest) {
-      const updatedTime = new Date();
-      const [h, m, s] = latest.time.split(':').map(Number);
-      updatedTime.setHours(h, m, s);
-
-      const minutesAgo = (now - updatedTime) / 60000;
-      if (minutesAgo <= 10) {
-        div.classList.add("updated");
-      }
-    }
-
-    // On click, show history
-    div.onclick = () => showHistory(card);
-    trendGrid.appendChild(div);
-  });
-}
-
-// Show history of selected card
-function showHistory(card) {
-  modal.classList.remove("hidden");
-  modalCode.textContent = card.code;
-  historyList.innerHTML = '';
-
-  card.history.slice().reverse().forEach(update => {
-    const li = document.createElement("li");
-    li.textContent = `${update.time} — ${update.personality} (${update.type})`;
-    historyList.appendChild(li);
-  });
-}
-
-// Update Trend UI every minute with runtime updates
-setInterval(() => {
-  updateCards();
-  renderTrendCards();
-}, 60 * 1000);
-
-renderTrendCards(); // Initial render
-
+ // === Runtime Data ===
+ const collections = {};
+ const personalities = ["confident", "charismatic", "rude", "stingy", "honest", "reliable", 
+                       "selfish", "lazy", "affable", "reckless", "jealous", "manipulative"];
+ const types = ["bronze", "silver", "gold"];
+ 
+ // Initialize collections with cards (codes 1–50 per group)
+ for (let i = 1; i <= 5; i++) {
+     collections[i] = [];
+     for (let j = 1; j <= 50; j++) {
+         collections[i].push({
+             code: j,
+             personality: getRandom(personalities),
+             type: getRandom(types),
+             history: []
+         });
+     }
+ }
+ 
+ // === Update Cards Every Minute ===
+ function updateCards() {
+     for (let i = 1; i <= 5; i++) {
+         let numSimilar = getSimilarPersonalityCount();
+         let newPersonality = getRandom(personalities);
+         shuffleArray(collections[i]);
+ 
+         for (let j = 0; j < collections[i].length; j++) {
+             const card = collections[i][j];
+ 
+             if (j < numSimilar) {
+                 card.personality = newPersonality;
+             }
+ 
+             let rand = Math.random() * 100;
+             if (rand <= 20) card.type = "gold";
+             else if (rand <= 70) card.type = "silver";
+             else card.type = "bronze";
+ 
+             const now = new Date();
+             card.history.push({
+                 time: now.toLocaleTimeString(),
+                 personality: card.personality,
+                 type: card.type
+             });
+ 
+             if (card.history.length > 10) {
+                 card.history.shift();
+             }
+         }
+     }
+ }
+ 
+ // === UI Elements ===
+ const trendGrid = document.getElementById("trend-grid");
+ const modal = document.getElementById("history-modal");
+ const modalCode = document.getElementById("modal-card-code");
+ const historyList = document.getElementById("history-list");
+ const closeModal = document.getElementById("close-modal");
+ const categoryTabs = document.querySelectorAll(".tab");
+ 
+ let currentCategory = 1; // Default to C1
+ 
+ closeModal.onclick = () => modal.classList.add("hidden");
+ window.onclick = (e) => {
+   if (e.target === modal) modal.classList.add("hidden");
+ };
+ 
+ // === Tab Interaction ===
+ categoryTabs.forEach(btn => {
+   btn.addEventListener("click", () => {
+     currentCategory = parseInt(btn.dataset.cat);
+     updateActiveTab();
+     renderTrendCards(currentCategory);
+   });
+ });
+ 
+ function updateActiveTab() {
+   categoryTabs.forEach(btn => {
+     btn.classList.remove("active");
+     if (parseInt(btn.dataset.cat) === currentCategory) {
+       btn.classList.add("active");
+     }
+   });
+ }
+ 
+ // === Render Cards for Selected Category ===
+ function renderTrendCards(category = 1) {
+   trendGrid.innerHTML = '';
+ 
+   const group = collections[category];
+   group.forEach(card => {
+     const div = document.createElement("div");
+     div.className = "trend-card";
+     div.textContent = `C${category}-${card.code}`;
+ 
+     const now = new Date();
+     const latest = card.history[card.history.length - 1];
+     if (latest) {
+       const updatedTime = new Date();
+       const [h, m, s] = latest.time.split(':').map(Number);
+       updatedTime.setHours(h, m, s);
+       const minutesAgo = (now - updatedTime) / 60000;
+       if (minutesAgo <= 10) div.classList.add("updated");
+     }
+ 
+     div.onclick = () => showHistory(card, category);
+     trendGrid.appendChild(div);
+   });
+ }
+ 
+ // === Show History Modal ===
+ function showHistory(card, collectionNum) {
+   modal.classList.remove("hidden");
+   modalCode.textContent = `Collection ${collectionNum} — Code ${card.code}`;
+   historyList.innerHTML = '';
+ 
+   card.history.slice().reverse().forEach(update => {
+     const li = document.createElement("li");
+     li.textContent = `${update.time} — ${update.personality} (${update.type})`;
+     historyList.appendChild(li);
+   });
+ }
+ 
+ // === Start Updates and Initial Render ===
+ setInterval(() => {
+   updateCards();
+   renderTrendCards(currentCategory);
+ }, 60 * 1000);
+ 
+ updateActiveTab();
+ renderTrendCards(currentCategory);
+ 
+ 
 // Random count of cards to apply the same personality to
 function getSimilarPersonalityCount() {
     let random = Math.random() * 100;
@@ -539,12 +627,16 @@ updateCards(); // Initial call
 
 
     // === MATCHING SYSTEM BASED ON R1 & R2 PAIRING ===
-    form.addEventListener("submit", function (e) {
+   // === MATCHING SYSTEM BASED ON R1 & R2 PAIRING WITH STRICT 1-MINUTE COOLDOWN ===
+const lastUsedMap = new Map(); // Track last usage time per cardCode
+const COOLDOWN_DURATION = 60000; // 1 minute in milliseconds
+
+form.addEventListener("submit", function (e) {
     e.preventDefault();
 
     let cardCode = parseInt(document.getElementById("cardCode").value);
     let collectionId = parseInt(document.getElementById("cardCategory").value);
-    let userType = document.getElementById("cardType").value.toLowerCase(); // User-selected type
+    let userType = document.getElementById("cardType").value.toLowerCase();
     let userPersonalities = selectedPersonalities.map(p => p.toLowerCase());
 
     if (!cardCode || !collectionId || collectionId < 1 || collectionId > 5 || !userType || userPersonalities.length === 0) {
@@ -552,70 +644,73 @@ updateCards(); // Initial call
         return;
     }
 
-    let matchedCards = generatePairings(cardCode, collectionId);
-    
+    const now = Date.now();
+    const lastUsed = lastUsedMap.get(cardCode);
 
-    // Check if any matched card has the same type and at least one of the user's entered personalities
+    if (lastUsed && now - lastUsed < COOLDOWN_DURATION) {
+        const secondsRemaining = Math.ceil((COOLDOWN_DURATION - (now - lastUsed)) / 1000);
+        alert(`This card code was already used. Please wait ${secondsRemaining} more second(s) before reusing it.`);
+        return;
+    }
+
+    // Update usage time (so they can't retry quickly)
+    lastUsedMap.set(cardCode, now);
+
+    // === Generate matched cards and apply fluctuation logic ===
+    let matchedCards = generatePairings(cardCode, collectionId);
+
     let hasValidMatch = matchedCards.some(card =>
-        card.type.toLowerCase() === userType && userPersonalities.includes(card.personality.toLowerCase())
+        card.type.toLowerCase() === userType &&
+        userPersonalities.includes(card.personality.toLowerCase())
     );
 
     let fluctuation;
-    
+
     if (hasValidMatch) {
-        // Rise based on type
         switch (userType) {
             case "bronze":
-                fluctuation = (Math.random() * (64 - 50) + 50) / 100; // 64% to 50%
-                  showFluctuationPopup("bronze");
+                fluctuation = (Math.random() * (64 - 50) + 50) / 100;
+                showFluctuationPopup("bronze");
                 break;
             case "silver":
-                fluctuation = (Math.random() * (79 - 65) + 65) / 100; // 79% to 65%
-                  showFluctuationPopup("silver");
+                fluctuation = (Math.random() * (79 - 65) + 65) / 100;
+                showFluctuationPopup("silver");
                 break;
             case "gold":
-                fluctuation = (Math.random() * (100 - 80) + 80) / 100; // 100% to 80%
-               showFluctuationPopup("gold");
+                fluctuation = (Math.random() * (100 - 80) + 80) / 100;
+                showFluctuationPopup("gold");
                 break;
         }
     } else {
-    fluctuation = -Math.random() * 0.5; // No valid match → value decreases by up to 50%
+        fluctuation = -Math.random() * 0.5;
+        let percentFall = Math.abs((fluctuation * 100).toFixed(1));
+        showFallPopup(percentFall);
+    }
 
-    // Convert fluctuation to percentage and show popup
-    let percentFall = Math.abs((fluctuation * 100).toFixed(1)); // Convert to positive percentage
-    showFallPopup(percentFall);
-}
-
-     // Apply fluctuation
     let newValue = totalValue * (1 + fluctuation);
     let difference = newValue - totalValue;
 
     if (difference > 0) {
         totalGain += difference;
+        barColors.push("lime");
     } else {
         totalLoss += Math.abs(difference);
+        barColors.push("crimson");
     }
 
     totalValue = newValue;
 
-   // Default fluctuation resumes (-5% to +5%) at the new value
-timestamps.push(new Date());
-cardValues.push(totalValue);
+    timestamps.push(new Date());
+    cardValues.push(totalValue);
 
-if (timestamps.length > 20) {
-    timestamps.shift();
-    cardValues.shift();
-}
+    if (timestamps.length > 20) {
+        timestamps.shift();
+        cardValues.shift();
+        barColors.shift();
+    }
 
-let formattedTimestamps = timestamps.map(t => new Date(t));
-Plotly.react("cardGraph", [{
-    x: formattedTimestamps,  // ✅ Use formatted local timestamps 
-    y: cardValues,
-    mode: "lines",
-    line: { color: "lime" }
-}], layout);  // Keep existing layout settings
-   
-document.getElementById("totalValue").textContent = totalValue.toFixed(2);
+    drawGraph();
+    document.getElementById("totalValue").textContent = totalValue.toFixed(2);
 
 // Resume default fluctuation after 3 seconds
 setTimeout(() => {
@@ -785,108 +880,149 @@ function showRestartSelection() {
             updateSectionB(); // ✅ Populate codes
         }
     });
-     function generatePairings(cardCode, category) {
-    let matchedPairs = pairings.find(p => p.R1 === cardCode || p.R2 === cardCode);
+     /**********************************
+ * 🔄 Pairing Logic (1-minute limit)
+ **********************************/
+const lastMatchedTime = {}; // ⏱️ Track last match timestamp
+
+function generatePairings(cardCode, category) {
+    const now = Date.now();
+
+    // 🚫 If used in the past minute, block reuse
+    if (lastMatchedTime[cardCode] && now - lastMatchedTime[cardCode] < 60000) {
+        console.log(`⚠️ Code ${cardCode} was used less than 1 minute ago.`);
+        return [];
+    }
+
+    // ✅ Update timestamp for new use
+    lastMatchedTime[cardCode] = now;
+
+    // 🔍 Find pairing entry
+    const matchedPairs = pairings.find(p => p.R1 === cardCode || p.R2 === cardCode);
     if (!matchedPairs) return [];
 
-    let matchedCodes = matchedPairs.R1_Pairings ? matchedPairs.R1_Pairings : matchedPairs.R2_Pairings;
-    let matchedCards = collections[category]?.filter(user => matchedCodes.includes(user.code)) || [];
+    // 🧩 Choose the right pairing group
+    const matchedCodes = matchedPairs.R1_Pairings ?? matchedPairs.R2_Pairings;
+
+    // 🔎 Filter matched cards from selected category
+    const matchedCards = collections[category]?.filter(user => matchedCodes.includes(user.code)) || [];
 
     return matchedCards;
 }
 
-    /** Handle Code Selection (Step 4) */
-    document.getElementById("sectionCodes").addEventListener("click", function (event) {
-        let clickedCell = event.target.closest(".selectable[data-type='code']");
-        if (!clickedCell) return;
 
-        document.querySelectorAll('[data-type="code"]').forEach(cell => cell.classList.remove("selected-code"));
-        clickedCell.classList.add("selected-code");
+/*********************************************
+ * 🎯 Handle Code Selection (Step 4 Selection)
+ *********************************************/
+document.getElementById("sectionCodes").addEventListener("click", function (event) {
+    const clickedCell = event.target.closest(".selectable[data-type='code']");
+    if (!clickedCell) return;
 
-        selectedCode = parseInt(clickedCell.textContent.trim());
-        console.log("Selected Code:", selectedCode);
+    // 💡 Highlight selected code
+    document.querySelectorAll('[data-type="code"]').forEach(cell => cell.classList.remove("selected-code"));
+    clickedCell.classList.add("selected-code");
 
-        showResults(); // ✅ Move to final results
-        displayMatchedResults();
-    });
+    // 🆔 Get selected code
+    selectedCode = parseInt(clickedCell.textContent.trim());
+    console.log("✅ Selected Code:", selectedCode);
 
-    /** Display Matched Results (Step 5) */
- function displayMatchedResults() {
-    // ✅ Fetch matched cards using pairing algorithm
-    let matchedCards = generatePairings(selectedCode, selectedCategory);
+    showResults();            // ➡️ Proceed to results section
+    displayMatchedResults();  // 🔄 Generate and show matches
+});
 
-    let matchedResults = document.getElementById("matchedResults");
-    
-    // ✅ Update the section with matched cards
+
+/***********************************
+ * 📋 Display Matched Results (Step 5)
+ ***********************************/
+function displayMatchedResults() {
+    const matchedCards = generatePairings(selectedCode, selectedCategory);
+    const matchedResults = document.getElementById("matchedResults");
+
+    // 🖼️ Render card matches
     matchedResults.innerHTML = `
         <div class="matched-grid">
-            ${matchedCards.length > 0 ? matchedCards.map(card => `
-                <div class="matched-card">
-                    <strong>Code:</strong> ${card.code} <br>
-                    <strong>Type:</strong> ${card.type} <br>
-                    <strong>Personality:</strong> ${card.personality}
-                </div>
-            `).join("") : `<p>No matches found.</p>`}
+            ${matchedCards.length > 0 
+                ? matchedCards.map(card => `
+                    <div class="matched-card">
+                        <strong>Code:</strong> ${card.code} <br>
+                        <strong>Type:</strong> ${card.type} <br>
+                        <strong>Personality:</strong> ${card.personality}
+                    </div>
+                `).join("") 
+                : `<p>No matches found.</p>`
+            }
         </div>
     `;
 
-    // ✅ Update the graph with fluctuation based on matches
+    // 📈 Graph: Update based on matches
     updateGraphFluctuation(matchedCards);
 }
 
-    /** Function to Update Graph Based on Matches */
+
+/** Function to Update Graph Based on Matches */
 function updateGraphFluctuation(matchedCards) {
-    let hasValidMatch = matchedCards.some(card =>
-        card.type.toLowerCase() === selectedType && selectedPersonalities.includes(card.personality.toLowerCase())
+    // 🛑 Stop if no cards were generated
+    if (!matchedCards || matchedCards.length === 0) {
+        console.log("⚠️ No matched cards. Skipping fluctuation.");
+        return;
+    }
+
+    // ✅ Check for valid match (type + personality)
+    const hasValidMatch = matchedCards.some(card =>
+        card.type.toLowerCase() === selectedType &&
+        selectedPersonalities.includes(card.personality.toLowerCase())
     );
 
     let fluctuation;
+
     if (hasValidMatch) {
         switch (selectedType) {
-            case "bronze": fluctuation = (Math.random() * (0.64 - 0.50) + 0.50); 
-            showFluctuationPopup("bronze");
-            break;
-            case "silver": fluctuation = (Math.random() * (0.79 - 0.65) + 0.65); 
-            showFluctuationPopup("silver");
-            break;
-            case "gold": fluctuation = (Math.random() * (1.00 - 0.80) + 0.80);
-            showFluctuationPopup("gold");
-            break;
+            case "bronze":
+                fluctuation = (Math.random() * (0.64 - 0.50) + 0.50);
+                showFluctuationPopup("bronze");
+                break;
+            case "silver":
+                fluctuation = (Math.random() * (0.79 - 0.65) + 0.65);
+                showFluctuationPopup("silver");
+                break;
+            case "gold":
+                fluctuation = (Math.random() * (1.00 - 0.80) + 0.80);
+                showFluctuationPopup("gold");
+                break;
         }
     } else {
-    fluctuation = -Math.random() * 0.5; // No valid match → value decreases by up to 50%
+        // ❌ No valid personality + type match = downward trend
+        fluctuation = -Math.random() * 0.5;
+        let percentFall = Math.abs((fluctuation * 100).toFixed(1));
+        showFallPopup(percentFall);
+    }
 
-    // Convert fluctuation to percentage and show popup
-    let percentFall = Math.abs((fluctuation * 100).toFixed(1)); // Convert to positive percentage
-    showFallPopup(percentFall);
-}
+    // 🔄 Apply fluctuation
+    const newValue = totalValue * (1 + fluctuation);
+    const difference = newValue - totalValue;
 
-    // ✅ Apply fluctuation to total value
-    let newValue = totalValue * (1 + fluctuation);
-    let difference = newValue - totalValue;
-
-    if (difference > 0) totalGain += difference;
-    else totalLoss += Math.abs(difference);
+    if (difference > 0) {
+        totalGain += difference;
+        barColors.push("lime");
+    } else {
+        totalLoss += Math.abs(difference);
+        barColors.push("crimson");
+    }
 
     totalValue = newValue;
     timestamps.push(new Date());
     cardValues.push(totalValue);
 
-    // ✅ Keep last 20 points for smooth graph performance
+    // 📉 Keep only last 20 points
     if (timestamps.length > 20) {
         timestamps.shift();
         cardValues.shift();
+        barColors.shift();
     }
 
-    // ✅ Update the graph
-    Plotly.react("cardGraph", [{
-        x: timestamps.map(t => new Date(t)),
-        y: cardValues,
-        mode: "lines",
-        line: { color: "lime" }
-    }], layout);
-
-    // ✅ Update total value on UI
+    // 📊 Update Plotly graph
+    drawGraph();
+    // 🔢 Update UI value
     document.getElementById("totalValue").textContent = totalValue.toFixed(2);
 
     // ✅ Resume default fluctuation after 3 seconds

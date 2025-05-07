@@ -14,19 +14,20 @@
     <!-- HEADER SECTION -->
     <header class="header">
         <a href="#" class="logo">MatchPro</a>
+        <div id="live-total-value" class="live-value">Loading...</div>
         <nav>
             <ul class="nav-links" id="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="business-card.html">Business Card</a></li>
                 <li><a href="matching.html">Matching</a></li>
                 <li><a href="contact.html">Contact</a></li>
-                <li><a href="wallet.html" class="wallet-icon">💰</a></li>
+                <!-- Theme Toggle Button -->
+        <div class="theme-toggle" id="theme-toggle">
+            <img id="theme-icon" src="darkmode.png.png" alt="Theme Toggle" width="24" height="24">
+          </div>
             </ul>
         </nav>
-
-        <!-- Theme Toggle Button -->
-        <div class="theme-toggle" id="theme-toggle">🌙</div>
-
+          
         <a style="display: flex; align-items: center; gap: 10px;"
              href="account.html" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
               <img id="homepage-avatar" src="default-avatar.png" alt="Avatar" width="30" height="30" style="border-radius: 50%;">
@@ -120,6 +121,13 @@
        <section id="trend-section">
         <div class="trend-container">
           <h2>Card Trends (Last 10 Min)</h2>
+          <div id="category-tabs" class="tabs">
+            <button class="tab active" data-cat="1">C1</button>
+            <button class="tab" data-cat="2">C2</button>
+            <button class="tab" data-cat="3">C3</button>
+            <button class="tab" data-cat="4">C4</button>
+            <button class="tab" data-cat="5">C5</button>
+          </div>
           <div class="trend-grid" id="trend-grid">
             <!-- Cards will be injected here -->
           </div>

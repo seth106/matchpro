@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     const usernameEl = document.getElementById("username");
     const phoneEl = document.getElementById("user-phone");
     const editProfileBtn = document.getElementById("edit-profile");
+    const menuToggle = document.getElementById("menu-toggle");
+    const navLinks = document.getElementById("nav-links");
+    const body = document.body;
 
     const profileImgEl = document.getElementById("profile-img");
     const uploadImgInput = document.getElementById("upload-img");
@@ -29,6 +32,59 @@ document.addEventListener("DOMContentLoaded", async function () {
         alert("Unauthorized! Please log in.");
         window.location.href = "auth.html";
     }
+    const themeToggle = document.getElementById("theme-toggle");
+    const themeIcon = document.getElementById("theme-icon");
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    body.setAttribute("data-theme", savedTheme);
+    
+    // Set initial icon
+    themeIcon.src = savedTheme === "dark" ? "darkmode.png.png" : "darkmode.png.png";
+    
+    if (themeToggle) {
+      themeToggle.addEventListener("click", function () {
+        let newTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        body.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+    
+        // Change the image source based on the new theme
+        themeIcon.src = newTheme === "dark" ? "darkmode.png.png" : "darkmode.png.png";
+      });
+    }
+    
+        // Hamburger Menu Toggle
+        menuToggle.addEventListener("click", function () {
+            navLinks.classList.toggle("show");
+        });
+    
+        document.querySelectorAll(".nav-links a").forEach(link => {
+            link.addEventListener("click", function () {
+                navLinks.classList.remove("show");
+            });
+        });
+    
+        const liveTotalElement = document.getElementById("live-total-value");
+        
+        async function fetchLiveTotalValue() {
+            try {
+                const res = await fetch(`http://localhost:5000/api/graph-value/${userId}`);
+                const data = await res.json();
+                if (data && data.totalValue !== undefined) {
+                    liveTotalElement.textContent = `Total Value: ${data.totalValue.toFixed(2)}`;
+                } else {
+                    liveTotalElement.textContent = "Total Value: --";
+                }
+            } catch (error) {
+                console.error("Error fetching live total value:", error);
+                liveTotalElement.textContent = "Error loading value";
+            }
+        }
+        
+        // Call immediately on load
+        fetchLiveTotalValue();
+        
+        // Refresh every 5 seconds
+        setInterval(fetchLiveTotalValue, 60000);
+        
     
     let profileCreated = false; // Prevent infinite loop
 

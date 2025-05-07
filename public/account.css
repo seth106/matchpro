@@ -1,4 +1,4 @@
-/* Default (Light Mode) */
+/* ========== ROOT VARIABLES ========== */
 :root {
     --bg-color: #f8f9fa;
     --text-color: #212529;
@@ -9,13 +9,14 @@
     --top-up-bg: #198754;
     --withdraw-bg: #dc3545;
     --shadow-color: rgba(0, 0, 0, 0.05);
+    --radius: 16px;
+    --transition-speed: 0.3s;
 }
 
-/* Dark Mode */
-.dark-mode {
-    --bg-color: #121212;
-    --text-color: #f1f3f5;
-    --card-bg: #1e1e1e;
+body[data-theme="dark"]{
+    --bg-color: #545252;
+    --text-color: #333;
+    --card-bg: #cfcccc;
     --border-color: #343a40;
     --button-bg: #339af0;
     --button-text: #ffffff;
@@ -23,27 +24,139 @@
     --withdraw-bg: #ff6b6b;
     --shadow-color: rgba(255, 255, 255, 0.05);
 }
-/* Base Styling */
+
+/* ========== BASE STYLING ========== */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
     background-color: var(--bg-color);
     color: var(--text-color);
-    transition: background 0.4s ease, color 0.4s ease;
+    transition: background var(--transition-speed), color var(--transition-speed);
     line-height: 1.6;
 }
-/* Navigation Bar for Back to Home */
+
+/* ========== HEADER ========== */
+.header {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: rgba(20, 25, 45, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    transition: background var(--transition-speed);
+}
+
+body[data-theme="light"] .header {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.live-value {
+    font-weight: bold;
+    font-size: 1rem;
+    color: lime;
+    padding: 0.3rem 1rem;
+}
+
+/* ========== NAVIGATION ========== */
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+    transition: all var(--transition-speed);
+}
+
+.nav-links a {
+    font-size: 18px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 8px;
+    transition: background var(--transition-speed), transform 0.2s;
+}
+
+.nav-links a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+body[data-theme="light"] .nav-links a {
+    color: black;
+}
+
+.menu-toggle {
+    display: none;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    z-index: 1100;
+}
+
+body[data-theme="light"] .menu-toggle {
+    color: black;
+}
+
+.menu-toggle .bar {
+    display: block;
+    width: 30px;
+    height: 4px;
+    margin: 6px auto;
+    background: white;
+    transition: var(--transition-speed);
+}
+
+body[data-theme="light"] .menu-toggle .bar {
+    background: black;
+}
+
+.menu-toggle.active .bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+.menu-toggle.active .bar:nth-child(2) {
+    opacity: 0;
+}
+.menu-toggle.active .bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+.theme-toggle {
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+.wallet-icon {
+    font-size: 22px;
+    cursor: pointer;
+    color: white;
+    margin-left: 15px;
+}
+
+body[data-theme="light"] .wallet-icon {
+    color: black;
+}
+
+/* ========== BACK NAVIGATION ========== */
 .back-nav {
     background-color: var(--card-bg);
     padding: 10px 20px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
     border-bottom: 1px solid var(--border-color);
 }
 
-/* Back to Home Button */
 .back-to-home {
     color: var(--text-color);
     text-decoration: none;
@@ -59,21 +172,21 @@ body {
     transform: translateX(-3px);
 }
 
-/* Container Styles */
+/* ========== PROFILE & WALLET CONTAINER ========== */
 .profile-container,
 .wallet-container {
     max-width: 420px;
-    margin: 30px auto;
+    margin: 90px auto 30px;
     padding: 25px 20px;
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
+    border-radius: var(--radius);
     box-shadow: 0 6px 16px var(--shadow-color);
     transition: background 0.3s ease, border-color 0.3s ease;
     text-align: center;
 }
 
-/* Profile Image */
+/* ========== PROFILE IMAGE ========== */
 .profile-img {
     width: 100px;
     height: 100px;
@@ -90,7 +203,26 @@ body {
     box-shadow: 0 0 12px rgba(0, 123, 255, 0.4);
 }
 
-/* Bio Section */
+#profile-container {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+#profile-pic {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s;
+}
+
+#profile-pic:hover {
+    transform: scale(1.1);
+}
+
+/* ========== BIO SECTION ========== */
 .bio-container {
     text-align: left;
     margin-top: 15px;
@@ -104,7 +236,7 @@ body {
     width: 100%;
     height: 90px;
     padding: 10px;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border-color);
     background-color: var(--card-bg);
     color: var(--text-color);
@@ -112,7 +244,7 @@ body {
     font-size: 14px;
 }
 
-/* Wallet Header */
+/* ========== WALLET SECTION ========== */
 .wallet-header {
     display: flex;
     justify-content: space-between;
@@ -122,7 +254,6 @@ body {
     margin-bottom: 10px;
 }
 
-/* Input Field */
 .amount-input {
     width: 100%;
     padding: 12px;
@@ -134,7 +265,6 @@ body {
     margin-top: 10px;
 }
 
-/* Buttons Row */
 .wallet-buttons {
     display: flex;
     justify-content: space-between;
@@ -168,7 +298,7 @@ body {
     background-color: var(--withdraw-bg);
 }
 
-/* Transaction History */
+/* ========== TRANSACTION HISTORY ========== */
 .history-container {
     margin-top: 20px;
     max-height: 180px;
@@ -192,7 +322,7 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
-/* Logout Button */
+/* ========== LOGOUT BUTTON ========== */
 #logout {
     display: flex;
     align-items: center;
@@ -207,12 +337,10 @@ body {
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
-    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
 }
 
-/* Hover + Press Effects */
 #logout:hover {
-    background-color: #0056b3; /* slightly deeper blue for hover */
+    background-color: #0056b3;
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
 }
@@ -222,8 +350,27 @@ body {
     box-shadow: none;
 }
 
-/* Responsive Design */
-@media (max-width: 600px) {
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+    .nav-links {
+        flex-direction: column;
+        gap: 12px;
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 15px;
+        position: absolute;
+        top: 60px;
+        right: 10px;
+        border-radius: 12px;
+        display: none;
+    }
+
+    .nav-links.show {
+        display: flex;
+    }
+    .menu-toggle {
+        display: block;
+    }
+
     .wallet-buttons {
         flex-direction: column;
     }

@@ -38,6 +38,13 @@ body[data-theme="light"] {
     z-index: 1000;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
 }
+.live-value {
+    font-weight: bold;
+    font-size: 1rem;
+    color: lime;
+    padding: 0.3rem 1rem;
+  }
+  
 
 /* Light Mode Header */
 body[data-theme="light"] .header {
@@ -200,7 +207,7 @@ body[data-theme="light"] .wallet-section {
     align-items: center;
     width: auto; /* Adjust width dynamically */
     min-width: 200px; /* Prevent it from being too small */
-    height: 30px; /* Make it compact */
+    height: 15px; /* Make it compact */
     background-color: rgba(255, 0, 0, 0.0); /* Dark background for contrast */
     color: white; /* Text color */
     padding: 5px 10px;
@@ -217,8 +224,8 @@ body[data-theme="light"] .wallet-section {
 
 .stats p {
     margin: 0;
-    font-size: 2px; /* Reduce font size */
-    font-weight: 400; /* Slightly bold for readability */
+    font-size: 0.6rem; /* Reduce font size */
+    font-weight: 100; /* Slightly bold for readability */
     white-space: nowrap; /* Prevent text wrapping */
 }
 
@@ -668,7 +675,27 @@ h2 {
     margin: 0 auto;
     padding: 0 10px;
   }
+  /* === Tabs === */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
   
+  .tab {
+    padding: 10px 20px;
+    background-color: #e0e0e0;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 600;
+  }
+  
+  .tab.active {
+    background-color: #007bff;
+    color: white;
+  }
   .trend-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
